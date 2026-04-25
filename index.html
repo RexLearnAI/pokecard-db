@@ -301,6 +301,96 @@
     .type-Dragon    { background: #B2EBF2; color: #006064; }
     .type-Colorless { background: #F5F5F5; color: #616161; }
 
+    /* ── Quiz button in header ── */
+    #quizBtn {
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; border-radius: 24px; padding: 7px 14px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+    }
+    #quizBtn:hover { background: rgba(255,255,255,0.25); transform: scale(1.04); }
+
+    /* ── Quiz overlay ── */
+    #quizOverlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, #0f0f23 0%, #1a2a4a 100%);
+      z-index: 400;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+    #quizOverlay.active { transform: translateY(0); }
+
+    .quiz-top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .quiz-exit-btn {
+      background: rgba(255,255,255,0.12); border: none; color: #fff;
+      width: 36px; height: 36px; border-radius: 50%; font-size: 1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .quiz-exit-btn:hover { background: rgba(255,255,255,0.28); }
+    .quiz-title    { color: var(--yellow); font-size: 1.1rem; font-weight: 800; }
+    .quiz-progress { color: #aac4e8; font-size: 0.85rem; font-weight: 600; min-width: 64px; text-align: right; }
+
+    /* ── Flashcard ── */
+    .flashcard-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 30px 20px; perspective: 1200px;
+    }
+    .flashcard {
+      width: min(340px, 88vw);
+      height: min(230px, 52vw, 260px);
+      position: relative; transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+
+    .flashcard-face {
+      position: absolute; inset: 0; border-radius: 24px;
+      backface-visibility: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .flashcard-front {
+      background: linear-gradient(135deg, #1A1A2E 0%, #2d3a6e 100%);
+      border: 2px solid rgba(255,215,0,0.3);
+    }
+    .flashcard-back {
+      background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+      transform: rotateY(180deg);
+    }
+    .fc-chars {
+      font-size: clamp(2.4rem, 9vw, 3.6rem);
+      font-weight: 900; letter-spacing: 0.1em;
+      color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .flashcard-back .fc-chars { color: #1A1A2E; text-shadow: none; }
+    .fc-hint  { color: rgba(255,255,255,0.45); font-size: 0.82rem; }
+    .fc-sound { font-size: 1.5rem; }
+    .fc-en    { font-size: clamp(1rem, 3.5vw, 1.35rem); font-weight: 700; color: #1A1A2E; text-align: center; padding: 0 14px; }
+    .fc-tag   { background: rgba(0,0,0,0.15); color: #1A1A2E; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+    /* ── Quiz nav ── */
+    .quiz-nav-row {
+      display: flex; justify-content: space-between;
+      padding: 16px 24px 36px; gap: 12px; flex-shrink: 0;
+    }
+    .quiz-nav-btn {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; border-radius: 24px; padding: 10px 24px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, transform 0.15s; font-family: inherit;
+    }
+    .quiz-nav-btn:hover:not(:disabled) { background: rgba(255,215,0,0.25); transform: scale(1.04); }
+    .quiz-nav-btn:disabled { opacity: 0.25; cursor: default; }
+
     /* ── Error notice ── */
     .error-notice {
       background: #fff3cd; border-left: 4px solid #ffc107;
@@ -328,7 +418,10 @@
       <p id="appSubtitle">點擊文字，聆聽粵語發音</p>
     </div>
   </div>
-  <button id="langToggle">English</button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button id="quizBtn" onclick="enterQuiz()">測驗</button>
+    <button id="langToggle">English</button>
+  </div>
 </header>
 
 <div id="setBanner">
@@ -348,6 +441,39 @@
 </main>
 
 <div id="backdrop"></div>
+
+<!-- ── Quiz overlay ── -->
+<div id="quizOverlay">
+  <div class="quiz-top-bar">
+    <button class="quiz-exit-btn" onclick="exitQuiz()">✕</button>
+    <h2 class="quiz-title" id="quizTitle">測驗模式</h2>
+    <span class="quiz-progress" id="quizProgress">…</span>
+  </div>
+
+  <div class="flashcard-wrap">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-face flashcard-front">
+        <div class="fc-chars" id="fcChars"></div>
+        <div class="fc-hint" id="fcHint">點擊翻牌 👆</div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div class="fc-chars" id="fcCharsBack"></div>
+        <div class="fc-sound">🔊</div>
+        <div class="fc-en" id="fcEn"></div>
+        <span class="fc-tag" id="fcTag"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-nav-row">
+    <button class="quiz-nav-btn" id="quizPrevBtn" onclick="quizNav(-1)" disabled>
+      &#8592; <span id="quizPrevLabel">上一題</span>
+    </button>
+    <button class="quiz-nav-btn" id="quizNextBtn" onclick="quizNav(1)">
+      <span id="quizNextLabel">下一題</span> &#8594;
+    </button>
+  </div>
+</div>
 
 <div id="detailPanel">
   <div class="panel-handle"></div>
@@ -744,8 +870,13 @@ function setLang(newLang) {
   document.getElementById('setSubtitle').textContent = lbl.setSubtitle;
   if (gridCards.length)
     document.getElementById('setCount').textContent = lbl.cardsLoaded(gridCards.length);
-  document.getElementById('prevLabel').textContent = isEn ? 'Prev' : '上一張';
-  document.getElementById('nextLabel').textContent = isEn ? 'Next' : '下一張';
+  document.getElementById('prevLabel').textContent     = isEn ? 'Prev' : '上一張';
+  document.getElementById('nextLabel').textContent     = isEn ? 'Next' : '下一張';
+  document.getElementById('quizBtn').textContent       = isEn ? 'Quiz' : '測驗';
+  document.getElementById('quizTitle').textContent     = isEn ? 'Quiz Mode' : '測驗模式';
+  document.getElementById('quizPrevLabel').textContent = isEn ? 'Prev' : '上一題';
+  document.getElementById('quizNextLabel').textContent = isEn ? 'Next' : '下一題';
+  if (quizVocab.length) renderQuizCard();
   renderGrid();
   closePanel();
 }
@@ -754,10 +885,157 @@ document.getElementById('langToggle').addEventListener('click', () =>
   setLang(lang === 'zh' ? 'en' : 'zh'));
 document.getElementById('backdrop').addEventListener('click', closePanel);
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape')      closePanel();
-  if (e.key === 'ArrowLeft')   navigateCard(-1);
-  if (e.key === 'ArrowRight')  navigateCard(1);
+  if (document.getElementById('quizOverlay').classList.contains('active')) {
+    if (e.key === 'Escape')     exitQuiz();
+    if (e.key === 'ArrowLeft')  quizNav(-1);
+    if (e.key === 'ArrowRight') quizNav(1);
+    if (e.key === ' ')          { e.preventDefault(); flipCard(); }
+  } else {
+    if (e.key === 'Escape')     closePanel();
+    if (e.key === 'ArrowLeft')  navigateCard(-1);
+    if (e.key === 'ArrowRight') navigateCard(1);
+  }
 });
+
+// ── Quiz ──────────────────────────────────────────────────────────
+
+const VOCAB_CAT = {
+  name:    { zh: '名稱',  en: 'Name'    },
+  move:    { zh: '招式',  en: 'Move'    },
+  ability: { zh: '特技',  en: 'Ability' },
+};
+
+// Cards pre-fetched at quiz entry to seed move vocabulary
+const PREFETCH_IDS = ['006','009','025','054','094','113','131','143','150','151'];
+
+let quizVocab   = [];
+let quizIndex   = 0;
+let quizFlipped = false;
+
+function chineseOnly(str) {
+  return (str || '').replace(/[^一-鿿]/g, '');
+}
+
+function buildVocabList() {
+  const seen  = new Set();
+  const vocab = [];
+
+  function add(zhRaw, enRaw, catKey) {
+    const zh = chineseOnly(zhRaw);
+    if (!zh || zh.length > 4) return;
+    if (seen.has(zh)) return;
+    seen.add(zh);
+    vocab.push({ zh, en: enRaw || '—', cat: catKey });
+  }
+
+  // Card names (always available)
+  for (const c of gridCards) add(c.name_zh, c.name_en, 'name');
+
+  // Moves + abilities from any already-cached card details
+  for (const { zh: zc, en: ec } of Object.values(detailCache)) {
+    (zc.attacks  || []).forEach((a, i) => add(a.name, ec?.attacks?.[i]?.name,   'move'));
+    (zc.abilities|| []).forEach((a, i) => add(a.name, ec?.abilities?.[i]?.name, 'ability'));
+  }
+
+  // Fisher-Yates shuffle
+  for (let i = vocab.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [vocab[i], vocab[j]] = [vocab[j], vocab[i]];
+  }
+  return vocab;
+}
+
+async function enterQuiz() {
+  // Show overlay immediately with names vocab
+  quizVocab   = buildVocabList();
+  quizIndex   = 0;
+  quizFlipped = false;
+  document.getElementById('quizOverlay').classList.add('active');
+  renderQuizCard();
+  updateQuizProgress();
+
+  // Background-fetch 10 representative cards for move vocab
+  const uncached = PREFETCH_IDS.filter(id =>
+    !detailCache[id] && gridCards.find(c => c.localId === id));
+  if (uncached.length) {
+    try {
+      await Promise.all(uncached.map(async localId => {
+        const card = gridCards.find(c => c.localId === localId);
+        const [zh, en] = await Promise.all([
+          fetchJSON(`${API}/zh-tw/cards/${card.id_zh}`),
+          card.id_en ? fetchJSON(`${API}/en/cards/${card.id_en}`) : Promise.resolve(null),
+        ]);
+        detailCache[localId] = { zh, en };
+      }));
+      // Rebuild with richer vocab, preserve current card
+      const currentZh = quizVocab[quizIndex]?.zh;
+      quizVocab = buildVocabList();
+      const restored = quizVocab.findIndex(v => v.zh === currentZh);
+      quizIndex = restored >= 0 ? restored : 0;
+      updateQuizProgress();
+    } catch (_) { /* silently ignore — names vocab still works */ }
+  }
+}
+
+function exitQuiz() {
+  speechSynthesis && speechSynthesis.cancel();
+  document.getElementById('quizOverlay').classList.remove('active');
+}
+
+function renderQuizCard() {
+  if (!quizVocab.length) return;
+  const item = quizVocab[quizIndex];
+  const isEn = lang === 'en';
+
+  document.getElementById('fcChars').textContent     = item.zh;
+  document.getElementById('fcCharsBack').textContent = item.zh;
+  document.getElementById('fcHint').textContent      = isEn ? 'Tap to flip 👆' : '點擊翻牌 👆';
+  document.getElementById('fcEn').textContent        = isEn ? item.zh : item.en;
+  // Show: zh mode → English below; en mode → Chinese is the "answer" (already shown, just re-emphasise)
+  // Actually in both modes, show the translation of whichever is on the front
+  // Front shows item.zh; back shows item.en (English mode shows en label, zh mode shows en translation)
+  document.getElementById('fcEn').textContent = item.en;
+  document.getElementById('fcTag').textContent = VOCAB_CAT[item.cat]?.[lang] || item.cat;
+
+  // Reset flip
+  document.getElementById('flashcard').classList.remove('flipped');
+  quizFlipped = false;
+}
+
+function flipCard() {
+  quizFlipped = !quizFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', quizFlipped);
+
+  if (quizFlipped && 'speechSynthesis' in window) {
+    const item = quizVocab[quizIndex];
+    const isEn = lang === 'en';
+    const text = isEn ? item.en : item.zh;
+    if (text && text !== '—') {
+      speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.rate = 0.82;
+      utt.lang = isEn ? 'en-US' : 'zh-HK';
+      if (!isEn && cantonVoice) utt.voice = cantonVoice;
+      speechSynthesis.speak(utt);
+    }
+  }
+}
+
+function quizNav(delta) {
+  const next = quizIndex + delta;
+  if (next < 0 || next >= quizVocab.length) return;
+  speechSynthesis && speechSynthesis.cancel();
+  quizIndex = next;
+  renderQuizCard();
+  updateQuizProgress();
+}
+
+function updateQuizProgress() {
+  document.getElementById('quizProgress').textContent =
+    quizVocab.length ? `${quizIndex + 1} / ${quizVocab.length}` : '—';
+  document.getElementById('quizPrevBtn').disabled = quizIndex <= 0;
+  document.getElementById('quizNextBtn').disabled = quizIndex >= quizVocab.length - 1;
+}
 
 // ── Boot ───────────────────────────────────────────────────────────
 initTTS();
