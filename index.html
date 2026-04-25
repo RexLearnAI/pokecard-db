@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寶可夢識字樂 | Pokémon Reading Fun</title>
+  <style>
+    :root {
+      --yellow: #FFD700;
+      --yellow-dark: #F5A623;
+      --pokeball-red: #E53935;
+      --text-dark: #1A1A2E;
+      --text-mid: #555;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.13);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background: #f0f4ff;
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+
+    .pokeball-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(180deg, var(--pokeball-red) 50%, #fff 50%);
+      border: 3px solid #fff; position: relative; flex-shrink: 0;
+    }
+    .pokeball-icon::after {
+      content: ''; position: absolute;
+      width: 11px; height: 11px; background: #fff;
+      border: 3px solid #333; border-radius: 50%;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    .pokeball-icon::before {
+      content: ''; position: absolute;
+      width: 100%; height: 3px; background: #fff;
+      top: 50%; left: 0; transform: translateY(-50%);
+    }
+
+    .brand-text h1 { font-size: 1.2rem; font-weight: 800; color: var(--yellow); line-height: 1.1; }
+    .brand-text p  { font-size: 0.7rem; color: #aaa; letter-spacing: 0.04em; }
+
+    #langToggle {
+      background: var(--yellow); border: none; border-radius: 24px;
+      padding: 7px 18px; font-size: 0.88rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; color: #1A1A2E; font-family: inherit;
+    }
+    #langToggle:hover { background: var(--yellow-dark); transform: scale(1.04); }
+
+    /* ── Set banner ── */
+    #setBanner {
+      background: linear-gradient(135deg, #1A1A2E, #0d3b6e);
+      color: #fff; padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 6px;
+    }
+    .set-title    { font-size: 1rem; font-weight: 700; }
+    .set-subtitle { font-size: 0.75rem; color: #aac4e8; }
+    .set-count    { font-size: 0.78rem; color: #88bbdd; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 12px; }
+
+    /* ── Intro tip ── */
+    .intro-tip {
+      background: linear-gradient(135deg, #FFD700, #FF8C00);
+      padding: 9px 20px; text-align: center;
+      font-size: 0.88rem; font-weight: 600; color: #1A1A2E;
+    }
+
+    /* ── Card Grid ── */
+    main { padding: 16px 16px 40px; max-width: 1200px; margin: 0 auto; }
+
+    #cardGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      border-radius: var(--radius); overflow: hidden;
+      animation: shimmer 1.4s infinite linear;
+      background: linear-gradient(90deg, #e8eaf0 25%, #d8dce8 50%, #e8eaf0 75%);
+      background-size: 200% 100%;
+    }
+    .skeleton-card { height: 220px; }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Card Thumbnail ── */
+    .card-thumb {
+      background: #fff; border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow);
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid transparent;
+    }
+    .card-thumb:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+    }
+    .card-thumb:active { transform: scale(0.97); }
+
+    .card-thumb img {
+      width: 100%; display: block;
+      aspect-ratio: 2 / 2.8; object-fit: cover; background: #eee;
+    }
+    .card-thumb-label { padding: 7px 8px 9px; text-align: center; }
+    .card-thumb-label .name-zh { font-size: 1rem; font-weight: 800; display: block; }
+    .card-thumb-label .name-en { font-size: 0.7rem; color: #888; }
+
+    /* ── Type badge ── */
+    .type-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700; margin-top: 3px;
+    }
+
+    /* ── Modal backdrop ── */
+    #backdrop {
+      position: fixed; inset: 0;
+      background: rgba(10,10,30,0.6); z-index: 200;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    #backdrop.active { opacity: 1; pointer-events: all; }
+
+    /* ── Detail panel ── */
+    #detailPanel {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      max-height: 92vh; background: #fff;
+      border-radius: 24px 24px 0 0; z-index: 300;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+    }
+    #detailPanel.active { transform: translateY(0); }
+
+    .panel-handle { width: 40px; height: 5px; background: #ddd; border-radius: 3px; margin: 12px auto 0; }
+
+    /* ── Panel loading spinner ── */
+    .panel-spinner {
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px 20px; flex-direction: column; gap: 14px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid #eee;
+      border-top-color: var(--yellow-dark); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-label { font-size: 0.85rem; color: #999; }
+
+    /* ── Panel header ── */
+    .panel-header {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 18px 10px;
+    }
+    .panel-card-img {
+      width: 110px; flex-shrink: 0; border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    @media(min-width: 600px) { .panel-card-img { width: 150px; } }
+
+    .panel-card-info { flex: 1; min-width: 0; }
+    .close-btn {
+      background: #f0f0f0; border: none; width: 32px; height: 32px;
+      border-radius: 50%; font-size: 1rem; cursor: pointer;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .close-btn:hover { background: #ddd; }
+
+    .panel-name { font-size: 1.6rem; font-weight: 900; line-height: 1.1; margin-bottom: 5px; }
+    .panel-hp   { font-size: 0.9rem; color: #888; margin: 5px 0; }
+    .panel-hp span { font-weight: 700; color: var(--pokeball-red); font-size: 1.05rem; }
+    .panel-stage { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
+
+    .panel-body { padding: 0 18px 32px; }
+
+    /* ── Sections ── */
+    .section-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #bbb; margin: 14px 0 6px;
+    }
+
+    /* ── Readable (clickable text) ── */
+    .readable {
+      display: inline-flex; align-items: flex-start; gap: 8px;
+      cursor: pointer; padding: 7px 10px; border-radius: 10px;
+      transition: background 0.15s; width: 100%; text-align: left;
+    }
+    .readable:hover { background: #f4f6ff; }
+    .readable.speaking { background: #fff3cd; animation: pulse 0.8s infinite; }
+    @keyframes pulse {
+      0%, 100% { background: #fff3cd; }
+      50%       { background: #ffe080; }
+    }
+
+    .speaker-btn {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--yellow); border: none; cursor: pointer;
+      font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, background 0.2s; margin-top: 1px;
+    }
+    .readable.speaking .speaker-btn { background: var(--yellow-dark); transform: scale(1.15); }
+    .readable-text { flex: 1; line-height: 1.65; }
+
+    /* ── Ability block ── */
+    .ability-block {
+      background: linear-gradient(135deg, #fff8e1, #fff3cd);
+      border: 2px solid #FFD700; border-radius: 12px;
+      margin-bottom: 8px; overflow: hidden;
+    }
+    .ability-tag { background: #F57F17; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; display: inline-block; }
+    .ability-name .readable-text   { font-size: 1rem; font-weight: 800; }
+    .ability-effect .readable-text { font-size: 0.88rem; color: var(--text-mid); }
+
+    /* ── Attack block ── */
+    .attack-block { background: #f8f9ff; border-radius: 12px; margin-bottom: 8px; padding: 2px 0; border: 1px solid #e8eaf6; }
+    .attack-row   { display: flex; align-items: center; gap: 8px; padding: 4px 10px; }
+    .attack-cost  { display: flex; gap: 3px; flex-shrink: 0; }
+    .energy-pip {
+      width: 21px; height: 21px; border-radius: 50%; font-size: 0.65rem;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; border: 2px solid rgba(0,0,0,0.12);
+    }
+    .attack-name-row .readable { flex: 1; }
+    .attack-name-row .readable-text { font-size: 1.05rem; font-weight: 800; }
+    .attack-damage { font-size: 1.35rem; font-weight: 900; color: var(--pokeball-red); flex-shrink: 0; }
+    .attack-effect .readable-text { font-size: 0.86rem; color: #555; }
+
+    /* ── Trainer / Energy card ── */
+    .trainer-tag {
+      display: inline-block; background: #5c6bc0; color: #fff;
+      font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; margin-bottom: 6px;
+    }
+    .trainer-effect .readable-text { font-size: 0.95rem; color: var(--text-mid); line-height: 1.7; }
+
+    /* ── Stats ── */
+    .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .stat-chip { background: #f0f0f0; border-radius: 8px; padding: 5px 10px; font-size: 0.8rem; }
+    .stat-chip strong { display: block; font-size: 0.65rem; color: #999; text-transform: uppercase; }
+
+    /* ── Energy pip colors ── */
+    .energy-Grass     { background: #C8E6C9; color: #1B5E20; }
+    .energy-Fire      { background: #FFCCBC; color: #BF360C; }
+    .energy-Water     { background: #B3E5FC; color: #01579B; }
+    .energy-Lightning { background: #FFF176; color: #F57F17; }
+    .energy-Psychic   { background: #E1BEE7; color: #4A148C; }
+    .energy-Fighting  { background: #FFCC80; color: #E65100; }
+    .energy-Darkness  { background: #CFD8DC; color: #263238; }
+    .energy-Metal     { background: #E0E0E0; color: #424242; }
+    .energy-Dragon    { background: #B2EBF2; color: #006064; }
+    .energy-Colorless { background: #F5F5F5; color: #616161; }
+
+    /* ── Type badge colors ── */
+    .type-Grass     { background: #C8E6C9; color: #1B5E20; }
+    .type-Fire      { background: #FFCCBC; color: #BF360C; }
+    .type-Water     { background: #B3E5FC; color: #01579B; }
+    .type-Lightning { background: #FFF176; color: #E65100; }
+    .type-Psychic   { background: #E1BEE7; color: #4A148C; }
+    .type-Fighting  { background: #FFCC80; color: #E65100; }
+    .type-Darkness  { background: #CFD8DC; color: #263238; }
+    .type-Metal     { background: #E0E0E0; color: #424242; }
+    .type-Dragon    { background: #B2EBF2; color: #006064; }
+    .type-Colorless { background: #F5F5F5; color: #616161; }
+
+    /* ── Error notice ── */
+    .error-notice {
+      background: #fff3cd; border-left: 4px solid #ffc107;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 0.82rem; color: #856404; margin: 12px 0;
+    }
+
+    @media (min-width: 768px) {
+      #detailPanel {
+        max-width: 680px; left: 50%; right: auto;
+        transform: translate(-50%, 100%);
+        border-radius: 24px; bottom: 24px; max-height: 88vh;
+      }
+      #detailPanel.active { transform: translate(-50%, 0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="pokeball-icon"></div>
+    <div class="brand-text">
+      <h1 id="appTitle">寶可夢識字樂</h1>
+      <p id="appSubtitle">點擊文字，聆聽粵語發音</p>
+    </div>
+  </div>
+  <button id="langToggle">English</button>
+</header>
+
+<div id="setBanner">
+  <div>
+    <div class="set-title" id="setTitle">寶可夢卡牌151</div>
+    <div class="set-subtitle" id="setSubtitle">Pokémon Card 151 · SV2a</div>
+  </div>
+  <div class="set-count" id="setCount">載入中…</div>
+</div>
+
+<div class="intro-tip" id="introTip">
+  👆 點擊任何卡牌查看詳情，再點擊文字聆聽粵語發音！
+</div>
+
+<main>
+  <div id="cardGrid"></div>
+</main>
+
+<div id="backdrop"></div>
+
+<div id="detailPanel">
+  <div class="panel-handle"></div>
+  <div id="panelContent"></div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────
+const ZH_SET = 'SV2a';
+const EN_SET = 'sv03.5';
+const API    = 'https://api.tcgdex.net/v2';
+
+// Trainer cards 152–165 appear in different sort order between the two sets.
+// Map: zh localId → en localId for each trainer card.
+const TRAINER_ZH_TO_EN = {
+  '152': '159',  // 能量貼紙     ↔ Energy Sticker
+  '153': '162',  // 抓換臂      ↔ Grabber
+  '154': '152',  // 陳舊的貝殼化石 ↔ Antique Dome Fossil
+  '155': '153',  // 陳舊的甲殼化石 ↔ Antique Helix Fossil
+  '156': '154',  // 陳舊的秘密琥珀 ↔ Antique Old Amber
+  '157': '164',  // 安全護目鏡   ↔ Protective Goggles
+  '158': '155',  // 大氣球      ↔ Big Air Balloon
+  '159': '165',  // 硬硬束帶    ↔ Rigid Band
+  '160': '163',  // 吃剩的東西   ↔ Leftovers
+  '161': '160',  // 莉佳的招待   ↔ Erika's Invitation
+  '162': '161',  // 坂木的領導力  ↔ Giovanni's Charisma
+  '163': '158',  // 奈奈美的幫助  ↔ Daisy's Help
+  '164': '156',  // 正輝的輸送   ↔ Bill's Transfer
+  '165': '157',  // 自行車道    ↔ Cycling Road
+};
+
+const TYPE_ICONS = {
+  Grass:'🌿', Fire:'🔥', Water:'💧', Lightning:'⚡',
+  Psychic:'🔮', Fighting:'👊', Darkness:'🌑', Metal:'⚙️',
+  Dragon:'🐉', Colorless:'⭐', Fairy:'✨'
+};
+
+const TYPE_ZH = {
+  Grass:'草系', Fire:'火系', Water:'水系', Lightning:'電系',
+  Psychic:'超能系', Fighting:'格鬥系', Darkness:'惡系', Metal:'鋼系',
+  Dragon:'龍系', Colorless:'無色', Fairy:'妖精系'
+};
+
+const STAGE_ZH = { Basic:'基本', Stage1:'一階', Stage2:'二階', VMAX:'VMAX', V:'V' };
+const CATEGORY_ZH = { Pokemon:'寶可夢', Trainer:'訓練家', Energy:'能量' };
+
+const LABELS = {
+  zh: {
+    appTitle: '寶可夢識字樂', appSubtitle: '點擊文字，聆聽粵語發音',
+    intro: '👆 點擊任何卡牌查看詳情，再點擊文字聆聽粵語發音！',
+    toggleBtn: 'English', setTitle: '寶可夢卡牌151', setSubtitle: 'Pokémon Card 151 · SV2a',
+    hp: 'HP', stage: '進化階段', ability: '特技', abilityTag: '寶可夢特技',
+    attacks: '招式', stats: '弱點與撤退', weakness: '弱點', retreat: '撤退費用',
+    retreatUnit: '張能量', description: '寶可夢說明', effect: '效果',
+    loading: '載入中…', loadingCard: '正在載入卡牌資料…',
+    cardsLoaded: n => `${n} 張卡牌`,
+    error: '無法載入資料，請檢查網路連線後重試。',
+    errorCard: '無法載入此卡牌資料。',
+  },
+  en: {
+    appTitle: 'Pokémon Reading Fun', appSubtitle: 'Tap text to hear it read aloud',
+    intro: '👆 Tap any card to see details, then tap text to hear it read aloud!',
+    toggleBtn: '繁中', setTitle: 'Pokémon Card 151', setSubtitle: '寶可夢卡牌151 · SV2a',
+    hp: 'HP', stage: 'Stage', ability: 'Ability', abilityTag: 'Pokémon Power',
+    attacks: 'Attacks', stats: 'Weakness & Retreat', weakness: 'Weakness', retreat: 'Retreat Cost',
+    retreatUnit: ' Energy', description: 'Pokédex Entry', effect: 'Effect',
+    loading: 'Loading…', loadingCard: 'Loading card data…',
+    cardsLoaded: n => `${n} cards`,
+    error: 'Could not load data. Please check your connection and try again.',
+    errorCard: 'Could not load this card.',
+  }
+};
+
+// ── State ──────────────────────────────────────────────────────────
+let lang        = 'zh';
+let gridCards   = [];
+let detailCache = {};
+let activeReading = null;
+let cantonVoice   = null;
+
+// ── TTS ────────────────────────────────────────────────────────────
+function initTTS() {
+  if (!('speechSynthesis' in window)) return;
+  function loadVoices() {
+    const v = speechSynthesis.getVoices();
+    cantonVoice =
+      v.find(x => x.lang === 'zh-HK') ||
+      v.find(x => x.lang.toLowerCase().includes('zh-hk')) ||
+      v.find(x => x.lang.toLowerCase().includes('yue')) ||
+      v.find(x => x.lang === 'zh-TW') ||
+      v.find(x => x.lang.startsWith('zh')) || null;
+  }
+  loadVoices();
+  if (speechSynthesis.onvoiceschanged !== undefined)
+    speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text, el, isEnglish) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  if (activeReading && activeReading !== el) activeReading.classList.remove('speaking');
+  if (activeReading === el && el.classList.contains('speaking')) {
+    el.classList.remove('speaking'); activeReading = null; return;
+  }
+  activeReading = el;
+  el.classList.add('speaking');
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate  = 0.82;
+  utt.lang  = isEnglish ? 'en-US' : 'zh-HK';
+  if (!isEnglish && cantonVoice) utt.voice = cantonVoice;
+  utt.onend = utt.onerror = () => { el.classList.remove('speaking'); activeReading = null; };
+  speechSynthesis.speak(utt);
+}
+
+function speakEl(el, text, isEn) { speak(text, el, isEn); }
+
+// ── Fetch helper ───────────────────────────────────────────────────
+async function fetchJSON(url) {
+  const res  = await fetch(url);
+  if (!res.ok) throw new Error(`${res.status} ${url}`);
+  const data = await res.json();
+  if (data && data.status >= 400) throw new Error(`API error ${data.status}`);
+  return data;
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+async function init() {
+  showSkeletons(12);
+  try {
+    const [zhSet, enSet] = await Promise.all([
+      fetchJSON(`${API}/zh-tw/sets/${ZH_SET}`),
+      fetchJSON(`${API}/en/sets/${EN_SET}`)
+    ]);
+
+    // Build en localId → card lookup
+    const enByLocal = {};
+    for (const c of (enSet.cards || [])) enByLocal[c.localId] = c;
+
+    gridCards = (zhSet.cards || [])
+      // Exclude localIds 181–207: these illustration rares have different ordering
+      // between the Asian (SV2a) and English (sv03.5) releases.
+      .filter(zh => parseInt(zh.localId) <= 180)
+      .map(zh => {
+        const n   = parseInt(zh.localId);
+        // Trainer cards 152–165 are sorted differently; remap to the correct en card.
+        const enLocalId = (n >= 152 && n <= 165) ? TRAINER_ZH_TO_EN[zh.localId] : zh.localId;
+        const en  = enByLocal[enLocalId] || {};
+        return {
+          localId:  zh.localId,
+          id_zh:    zh.id,
+          id_en:    en.id   || null,
+          name_zh:  zh.name,
+          name_en:  en.name || zh.name,
+          image_en: en.image || '',
+        };
+      });
+
+    document.getElementById('setCount').textContent =
+      LABELS[lang].cardsLoaded(gridCards.length);
+
+    renderGrid();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('cardGrid').innerHTML =
+      `<div class="error-notice">${LABELS[lang].error}</div>`;
+    document.getElementById('setCount').textContent = '—';
+  }
+}
+
+// ── Grid ───────────────────────────────────────────────────────────
+function showSkeletons(n) {
+  document.getElementById('cardGrid').innerHTML =
+    Array.from({length: n}, () => `<div class="skeleton skeleton-card"></div>`).join('');
+}
+
+function renderGrid() {
+  if (!gridCards.length) return;
+  document.getElementById('cardGrid').innerHTML = gridCards.map(c => {
+    const name = lang === 'zh' ? c.name_zh : c.name_en;
+    const sub  = lang === 'zh' ? c.name_en : c.name_zh;
+    const img  = c.image_en ? `${c.image_en}/low.webp` : '';
+    return `
+      <div class="card-thumb" onclick="openCard('${c.localId}')"
+           role="button" tabindex="0" aria-label="${name}">
+        <img src="${img}" alt="${name}" loading="lazy"
+             onerror="this.style.background='#eee';this.removeAttribute('src')">
+        <div class="card-thumb-label">
+          <span class="name-zh">${name}</span>
+          <span class="name-en">${sub}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Card detail ────────────────────────────────────────────────────
+async function openCard(localId) {
+  document.getElementById('detailPanel').classList.add('active');
+  document.getElementById('backdrop').classList.add('active');
+  document.getElementById('panelContent').innerHTML = `
+    <div class="panel-spinner">
+      <div class="spinner"></div>
+      <div class="spinner-label">${LABELS[lang].loadingCard}</div>
+    </div>`;
+
+  try {
+    if (!detailCache[localId]) {
+      const card = gridCards.find(c => c.localId === localId);
+      if (!card) throw new Error('card not in grid');
+
+      const [zh, en] = await Promise.all([
+        fetchJSON(`${API}/zh-tw/cards/${card.id_zh}`),
+        card.id_en ? fetchJSON(`${API}/en/cards/${card.id_en}`) : Promise.resolve(null)
+      ]);
+      detailCache[localId] = { zh, en };
+    }
+    renderDetail(localId, detailCache[localId]);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('panelContent').innerHTML = `
+      <div style="padding:20px">
+        <button class="close-btn" onclick="closePanel()" style="margin-bottom:12px">✕</button>
+        <div class="error-notice">${LABELS[lang].errorCard}</div>
+      </div>`;
+  }
+}
+
+// ── Detail renderer ────────────────────────────────────────────────
+function renderDetail(localId, { zh: zhCard, en: enCard }) {
+  const lbl  = LABELS[lang];
+  const isEn = lang === 'en';
+
+  const name        = isEn ? (enCard?.name || zhCard.name)   : zhCard.name;
+  const description = isEn ? (enCard?.description || '')     : (zhCard.description || '');
+  const category    = zhCard.category;
+  const isPokemon   = category === 'Pokemon';
+
+  const gridCard = gridCards.find(c => c.localId === localId);
+  const imgUrl   = gridCard?.image_en ? `${gridCard.image_en}/high.webp` : '';
+
+  function readable(text, cls = '') {
+    if (!text) return '';
+    const esc = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="readable ${cls}" onclick="speakEl(this,'${esc}',${isEn})" role="button">
+      <button class="speaker-btn" tabindex="-1">🔊</button>
+      <span class="readable-text">${text}</span>
+    </div>`;
+  }
+
+  // Type badge(s)
+  let typeHTML = '';
+  if (isPokemon && zhCard.types?.length) {
+    typeHTML = zhCard.types.map(t => {
+      const label = isEn ? t : (TYPE_ZH[t] || t);
+      return `<span class="type-badge type-${t}">${TYPE_ICONS[t] || '⭐'} ${label}</span>`;
+    }).join(' ');
+  }
+
+  const stageRaw   = zhCard.stage || '';
+  const stageLabel = isEn ? stageRaw : (STAGE_ZH[stageRaw] || stageRaw);
+
+  const headerHTML = `
+    <div class="panel-header">
+      <img class="panel-card-img" src="${imgUrl}" alt="${name}"
+           onerror="this.style.display='none'">
+      <div class="panel-card-info">
+        <div class="panel-name">${readable(name)}</div>
+        ${typeHTML ? `<div style="margin:4px 0">${typeHTML}</div>` : ''}
+        ${isPokemon && stageLabel ? `<div class="panel-stage">${stageLabel}</div>` : ''}
+        ${isPokemon && zhCard.hp  ? `<div class="panel-hp">${lbl.hp} <span>${zhCard.hp}</span></div>` : ''}
+        ${!isPokemon ? `<span class="trainer-tag">${isEn ? category : (CATEGORY_ZH[category] || category)}</span>` : ''}
+      </div>
+      <button class="close-btn" onclick="closePanel()" aria-label="Close">✕</button>
+    </div>`;
+
+  // Pokédex description
+  let descHTML = '';
+  if (description) {
+    descHTML = `<div class="section-label">${lbl.description}</div>
+      <div class="flavor-text">${readable(description)}</div>`;
+  }
+
+  // Abilities
+  let abilitiesHTML = '';
+  const abilities = isEn ? (enCard?.abilities || zhCard.abilities || []) : (zhCard.abilities || []);
+  if (isPokemon && abilities.length) {
+    abilitiesHTML = `<div class="section-label">${lbl.ability}</div>`;
+    abilities.forEach(ab => {
+      abilitiesHTML += `
+        <div class="ability-block">
+          <span class="ability-tag">${lbl.abilityTag}</span>
+          ${readable(ab.name, 'ability-name')}
+          ${ab.effect ? readable(ab.effect, 'ability-effect') : ''}
+        </div>`;
+    });
+  }
+
+  // Attacks
+  let attacksHTML = '';
+  const attacks = isEn ? (enCard?.attacks || zhCard.attacks || []) : (zhCard.attacks || []);
+  if (isPokemon && attacks.length) {
+    attacksHTML = `<div class="section-label">${lbl.attacks}</div>`;
+    attacks.forEach(atk => {
+      const dmg      = atk.damage != null && atk.damage !== 0 ? atk.damage : '';
+      const costPips = (atk.cost || []).map(t =>
+        `<span class="energy-pip energy-${t}">${TYPE_ICONS[t] || '●'}</span>`
+      ).join('');
+      attacksHTML += `
+        <div class="attack-block">
+          <div class="attack-row attack-name-row">
+            <div class="attack-cost">${costPips}</div>
+            ${readable(atk.name, 'attack-name')}
+            ${dmg ? `<div class="attack-damage">${dmg}</div>` : ''}
+          </div>
+          ${atk.effect ? `<div class="attack-row">${readable(atk.effect, 'attack-effect')}</div>` : ''}
+        </div>`;
+    });
+  }
+
+  // Trainer / Energy effect
+  let trainerHTML = '';
+  if (!isPokemon) {
+    const effect = isEn ? (enCard?.effect || zhCard.effect || '') : (zhCard.effect || '');
+    if (effect) {
+      trainerHTML = `<div class="section-label">${lbl.effect}</div>
+        <div class="trainer-effect">${readable(effect)}</div>`;
+    }
+  }
+
+  // Weakness + retreat
+  let statsHTML = '';
+  if (isPokemon) {
+    const weaknesses = zhCard.weaknesses || [];
+    const retreatNum  = zhCard.retreat ?? 0;
+    const retreatText = retreatNum === 0
+      ? (isEn ? 'Free' : '免費')
+      : `${retreatNum}${lbl.retreatUnit}`;
+    const weakText = weaknesses.map(w => {
+      const tLabel = isEn ? w.type : (TYPE_ZH[w.type] || w.type);
+      return `${TYPE_ICONS[w.type] || ''} ${tLabel} ${w.value}`;
+    }).join(', ') || (isEn ? 'None' : '無');
+
+    statsHTML = `
+      <div class="section-label">${lbl.stats}</div>
+      <div class="stats-row">
+        <div class="stat-chip"><strong>${lbl.weakness}</strong>${weakText}</div>
+        <div class="stat-chip"><strong>${lbl.retreat}</strong>${retreatText}</div>
+      </div>`;
+  }
+
+  document.getElementById('panelContent').innerHTML =
+    headerHTML +
+    `<div class="panel-body">${descHTML}${abilitiesHTML}${attacksHTML}${trainerHTML}${statsHTML}</div>`;
+}
+
+// ── Close panel ────────────────────────────────────────────────────
+function closePanel() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (activeReading) { activeReading.classList.remove('speaking'); activeReading = null; }
+  document.getElementById('detailPanel').classList.remove('active');
+  document.getElementById('backdrop').classList.remove('active');
+}
+
+// ── Language toggle ────────────────────────────────────────────────
+function setLang(newLang) {
+  lang = newLang;
+  const lbl = LABELS[lang];
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+  document.getElementById('appTitle').textContent    = lbl.appTitle;
+  document.getElementById('appSubtitle').textContent = lbl.appSubtitle;
+  document.getElementById('introTip').textContent    = lbl.intro;
+  document.getElementById('langToggle').textContent  = lbl.toggleBtn;
+  document.getElementById('setTitle').textContent    = lbl.setTitle;
+  document.getElementById('setSubtitle').textContent = lbl.setSubtitle;
+  if (gridCards.length)
+    document.getElementById('setCount').textContent = lbl.cardsLoaded(gridCards.length);
+  renderGrid();
+  closePanel();
+}
+
+document.getElementById('langToggle').addEventListener('click', () =>
+  setLang(lang === 'zh' ? 'en' : 'zh'));
+document.getElementById('backdrop').addEventListener('click', closePanel);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+// ── Boot ───────────────────────────────────────────────────────────
+initTTS();
+init();
+</script>
+</body>
+</html>
