@@ -950,6 +950,11 @@ async function enterQuiz() {
   quizVocab   = buildVocabList();
   quizIndex   = 0;
   quizFlipped = false;
+  // Sync header labels to current language before showing
+  const isEn = lang === 'en';
+  document.getElementById('quizTitle').textContent     = isEn ? 'Quiz Mode' : '測驗模式';
+  document.getElementById('quizPrevLabel').textContent = isEn ? 'Prev' : '上一題';
+  document.getElementById('quizNextLabel').textContent = isEn ? 'Next' : '下一題';
   document.getElementById('quizOverlay').classList.add('active');
   renderQuizCard();
   updateQuizProgress();
@@ -987,15 +992,25 @@ function renderQuizCard() {
   const item = quizVocab[quizIndex];
   const isEn = lang === 'en';
 
-  document.getElementById('fcChars').textContent     = item.zh;
+  // Front: English word in EN mode, Chinese characters in ZH mode
+  const frontEl = document.getElementById('fcChars');
+  frontEl.textContent = isEn ? item.en : item.zh;
+  // Shrink font for longer English words so they fit the card
+  frontEl.style.fontSize = (isEn && item.en.length > 10) ? 'clamp(1.4rem,5vw,2rem)'
+                         : (isEn && item.en.length > 6)  ? 'clamp(1.8rem,6vw,2.6rem)'
+                         : '';
+
+  document.getElementById('fcHint').textContent = isEn ? 'Tap to flip 👆' : '點擊翻牌 👆';
+
+  // Back: always show Chinese big + English small, regardless of mode
   document.getElementById('fcCharsBack').textContent = item.zh;
-  document.getElementById('fcHint').textContent      = isEn ? 'Tap to flip 👆' : '點擊翻牌 👆';
-  document.getElementById('fcEn').textContent        = isEn ? item.zh : item.en;
-  // Show: zh mode → English below; en mode → Chinese is the "answer" (already shown, just re-emphasise)
-  // Actually in both modes, show the translation of whichever is on the front
-  // Front shows item.zh; back shows item.en (English mode shows en label, zh mode shows en translation)
-  document.getElementById('fcEn').textContent = item.en;
-  document.getElementById('fcTag').textContent = VOCAB_CAT[item.cat]?.[lang] || item.cat;
+  document.getElementById('fcEn').textContent        = item.en;
+  document.getElementById('fcTag').textContent       = VOCAB_CAT[item.cat]?.[lang] || item.cat;
+
+  // Sync nav button labels with current language
+  const isEnNow = lang === 'en';
+  document.getElementById('quizPrevLabel').textContent = isEnNow ? 'Prev' : '上一題';
+  document.getElementById('quizNextLabel').textContent = isEnNow ? 'Next' : '下一題';
 
   // Reset flip
   document.getElementById('flashcard').classList.remove('flipped');
@@ -1008,15 +1023,21 @@ function flipCard() {
 
   if (quizFlipped && 'speechSynthesis' in window) {
     const item = quizVocab[quizIndex];
-    const isEn = lang === 'en';
-    const text = isEn ? item.en : item.zh;
-    if (text && text !== '—') {
-      speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.rate = 0.82;
-      utt.lang = isEn ? 'en-US' : 'zh-HK';
-      if (!isEn && cantonVoice) utt.voice = cantonVoice;
-      speechSynthesis.speak(utt);
+    speechSynthesis.cancel();
+
+    // Always play Cantonese first, then English
+    if (item.zh) {
+      const uttZh = new SpeechSynthesisUtterance(item.zh);
+      uttZh.rate = 0.82;
+      uttZh.lang = 'zh-HK';
+      if (cantonVoice) uttZh.voice = cantonVoice;
+      speechSynthesis.speak(uttZh);
+    }
+    if (item.en && item.en !== '—') {
+      const uttEn = new SpeechSynthesisUtterance(item.en);
+      uttEn.rate = 0.82;
+      uttEn.lang = 'en-US';
+      speechSynthesis.speak(uttEn); // queued after Cantonese finishes
     }
   }
 }
