@@ -234,11 +234,28 @@
     .speaker-btn {
       flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
       background: var(--yellow); border: none; cursor: pointer;
-      font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
       transition: transform 0.2s, background 0.2s; margin-top: 1px;
     }
+    .speaker-btn-mandarin {
+      background: #b3e5fc; color: #01579b;
+    }
+    .speaker-btn-mandarin:hover { background: #81d4fa !important; }
     .readable.speaking .speaker-btn { background: var(--yellow-dark); transform: scale(1.15); }
     .readable-text { flex: 1; line-height: 1.65; }
+
+    /* ── Quiz sound buttons on flashcard back ── */
+    .fc-sound-row { display: flex; gap: 10px; justify-content: center; }
+    .fc-sound-btn {
+      background: rgba(0,0,0,0.15); border: none; border-radius: 20px;
+      padding: 6px 14px; font-size: 0.82rem; font-weight: 800;
+      cursor: pointer; color: #1A1A2E; transition: background 0.15s, transform 0.15s;
+      font-family: inherit;
+    }
+    .fc-sound-btn:hover { background: rgba(0,0,0,0.28); transform: scale(1.06); }
+    .fc-sound-btn-mandarin { background: rgba(1,87,155,0.18); color: #01579b; }
+    .fc-sound-btn-mandarin:hover { background: rgba(1,87,155,0.35) !important; }
 
     /* ── Ability block ── */
     .ability-block {
@@ -415,7 +432,7 @@
     <div class="pokeball-icon"></div>
     <div class="brand-text">
       <h1 id="appTitle">寶可夢識字樂</h1>
-      <p id="appSubtitle">點擊文字，聆聽粵語發音</p>
+      <p id="appSubtitle">點擊文字，聆聽粵語・普通話發音</p>
     </div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -433,7 +450,7 @@
 </div>
 
 <div class="intro-tip" id="introTip">
-  👆 點擊任何卡牌查看詳情，再點擊文字聆聽粵語發音！
+  👆 點擊任何卡牌查看詳情，再點擊「粵」聽粵語、「普」聽普通話！
 </div>
 
 <main>
@@ -458,7 +475,10 @@
       </div>
       <div class="flashcard-face flashcard-back">
         <div class="fc-chars" id="fcCharsBack"></div>
-        <div class="fc-sound">🔊</div>
+        <div class="fc-sound-row">
+          <button class="fc-sound-btn" onclick="event.stopPropagation();quizSpeak('cantonese')" title="粵語">🔊 粵</button>
+          <button class="fc-sound-btn fc-sound-btn-mandarin" onclick="event.stopPropagation();quizSpeak('mandarin')" title="普通話">🔊 普</button>
+        </div>
         <div class="fc-en" id="fcEn"></div>
         <span class="fc-tag" id="fcTag"></span>
       </div>
@@ -527,8 +547,8 @@ const CATEGORY_ZH = { Pokemon:'寶可夢', Trainer:'訓練家', Energy:'能量' 
 
 const LABELS = {
   zh: {
-    appTitle: '寶可夢識字樂', appSubtitle: '點擊文字，聆聽粵語發音',
-    intro: '👆 點擊任何卡牌查看詳情，再點擊文字聆聽粵語發音！',
+    appTitle: '寶可夢識字樂', appSubtitle: '點擊文字，聆聽粵語・普通話發音',
+    intro: '👆 點擊任何卡牌查看詳情，再點擊「粵」聽粵語、「普」聽普通話！',
     toggleBtn: 'English', setTitle: '寶可夢卡牌151', setSubtitle: 'Pokémon Card 151 · SV2a',
     hp: 'HP', stage: '進化階段', ability: '特技', abilityTag: '寶可夢特技',
     attacks: '招式', stats: '弱點與撤退', weakness: '弱點', retreat: '撤退費用',
@@ -558,6 +578,7 @@ let gridCards        = [];
 let detailCache      = {};
 let activeReading    = null;
 let cantonVoice      = null;
+let mandarinVoice    = null;
 let currentCardIndex = -1;
 
 // ── TTS ────────────────────────────────────────────────────────────
@@ -571,13 +592,20 @@ function initTTS() {
       v.find(x => x.lang.toLowerCase().includes('yue')) ||
       v.find(x => x.lang === 'zh-TW') ||
       v.find(x => x.lang.startsWith('zh')) || null;
+    mandarinVoice =
+      v.find(x => x.lang === 'zh-TW') ||
+      v.find(x => x.lang === 'zh-CN') ||
+      v.find(x => x.lang.toLowerCase().includes('zh-tw')) ||
+      v.find(x => x.lang.toLowerCase().includes('zh-cn')) ||
+      v.find(x => x.lang.startsWith('zh')) || null;
   }
   loadVoices();
   if (speechSynthesis.onvoiceschanged !== undefined)
     speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-function speak(text, el, isEnglish) {
+// dialect: 'cantonese' | 'mandarin' | 'english'
+function speak(text, el, dialect) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   if (activeReading && activeReading !== el) activeReading.classList.remove('speaking');
@@ -587,14 +615,21 @@ function speak(text, el, isEnglish) {
   activeReading = el;
   el.classList.add('speaking');
   const utt = new SpeechSynthesisUtterance(text);
-  utt.rate  = 0.82;
-  utt.lang  = isEnglish ? 'en-US' : 'zh-HK';
-  if (!isEnglish && cantonVoice) utt.voice = cantonVoice;
+  utt.rate = 0.82;
+  if (dialect === 'english') {
+    utt.lang = 'en-US';
+  } else if (dialect === 'mandarin') {
+    utt.lang = 'zh-TW';
+    if (mandarinVoice) utt.voice = mandarinVoice;
+  } else {
+    utt.lang = 'zh-HK';
+    if (cantonVoice) utt.voice = cantonVoice;
+  }
   utt.onend = utt.onerror = () => { el.classList.remove('speaking'); activeReading = null; };
   speechSynthesis.speak(utt);
 }
 
-function speakEl(el, text, isEn) { speak(text, el, isEn); }
+function speakEl(el, text, dialect) { speak(text, el, dialect); }
 
 // ── Fetch helper ───────────────────────────────────────────────────
 async function fetchJSON(url) {
@@ -737,7 +772,16 @@ function renderDetail(localId, { zh: zhCard, en: enCard }) {
   function readable(text, cls = '') {
     if (!text) return '';
     const esc = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    return `<div class="readable ${cls}" onclick="speakEl(this,'${esc}',${isEn})" role="button">
+    if (!isEn) {
+      // Chinese mode: Cantonese (粵) + Mandarin (普) buttons
+      return `<div class="readable ${cls}" onclick="speakEl(this,'${esc}','cantonese')" role="button">
+        <button class="speaker-btn" tabindex="-1" title="粵語">粵</button>
+        <button class="speaker-btn speaker-btn-mandarin" tabindex="-1" title="普通話"
+                onclick="event.stopPropagation();speak('${esc}',this.closest('.readable'),'mandarin')">普</button>
+        <span class="readable-text">${text}</span>
+      </div>`;
+    }
+    return `<div class="readable ${cls}" onclick="speakEl(this,'${esc}','english')" role="button">
       <button class="speaker-btn" tabindex="-1">🔊</button>
       <span class="readable-text">${text}</span>
     </div>`;
@@ -870,12 +914,13 @@ function setLang(newLang) {
   document.getElementById('setSubtitle').textContent = lbl.setSubtitle;
   if (gridCards.length)
     document.getElementById('setCount').textContent = lbl.cardsLoaded(gridCards.length);
-  document.getElementById('prevLabel').textContent     = isEn ? 'Prev' : '上一張';
-  document.getElementById('nextLabel').textContent     = isEn ? 'Next' : '下一張';
-  document.getElementById('quizBtn').textContent       = isEn ? 'Quiz' : '測驗';
-  document.getElementById('quizTitle').textContent     = isEn ? 'Quiz Mode' : '測驗模式';
-  document.getElementById('quizPrevLabel').textContent = isEn ? 'Prev' : '上一題';
-  document.getElementById('quizNextLabel').textContent = isEn ? 'Next' : '下一題';
+  const isEnNow = lang === 'en';
+  document.getElementById('prevLabel').textContent     = isEnNow ? 'Prev' : '上一張';
+  document.getElementById('nextLabel').textContent     = isEnNow ? 'Next' : '下一張';
+  document.getElementById('quizBtn').textContent       = isEnNow ? 'Quiz' : '測驗';
+  document.getElementById('quizTitle').textContent     = isEnNow ? 'Quiz Mode' : '測驗模式';
+  document.getElementById('quizPrevLabel').textContent = isEnNow ? 'Prev' : '上一題';
+  document.getElementById('quizNextLabel').textContent = isEnNow ? 'Next' : '下一題';
   if (quizVocab.length) renderQuizCard();
   renderGrid();
   closePanel();
@@ -1017,6 +1062,26 @@ function renderQuizCard() {
   quizFlipped = false;
 }
 
+function quizSpeak(dialect) {
+  if (!('speechSynthesis' in window) || !quizVocab.length) return;
+  const item = quizVocab[quizIndex];
+  speechSynthesis.cancel();
+  const text = (dialect === 'english') ? item.en : item.zh;
+  if (!text || text === '—') return;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.82;
+  if (dialect === 'mandarin') {
+    utt.lang = 'zh-TW';
+    if (mandarinVoice) utt.voice = mandarinVoice;
+  } else if (dialect === 'english') {
+    utt.lang = 'en-US';
+  } else {
+    utt.lang = 'zh-HK';
+    if (cantonVoice) utt.voice = cantonVoice;
+  }
+  speechSynthesis.speak(utt);
+}
+
 function flipCard() {
   quizFlipped = !quizFlipped;
   document.getElementById('flashcard').classList.toggle('flipped', quizFlipped);
@@ -1025,7 +1090,7 @@ function flipCard() {
     const item = quizVocab[quizIndex];
     speechSynthesis.cancel();
 
-    // Always play Cantonese first, then English
+    // Auto-play Cantonese first, then English
     if (item.zh) {
       const uttZh = new SpeechSynthesisUtterance(item.zh);
       uttZh.rate = 0.82;
