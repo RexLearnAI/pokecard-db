@@ -423,6 +423,162 @@
       }
       #detailPanel.active { transform: translate(-50%, 0); }
     }
+
+    /* ── Kids Mode button ── */
+    #kidsBtn {
+      background: linear-gradient(135deg, #ff8f00, #e65100);
+      border: none; border-radius: 24px; padding: 7px 14px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; color: #fff; font-family: inherit;
+    }
+    #kidsBtn:hover { transform: scale(1.06); filter: brightness(1.1); }
+
+    /* ── Kids Mode overlay ── */
+    #kidsOverlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, #1a2a0a 0%, #0a2a1a 50%, #0a0a2a 100%);
+      z-index: 410;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+    #kidsOverlay.active { transform: translateY(0); }
+
+    .kids-top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .kids-title { color: #FFD700; font-size: 1.1rem; font-weight: 800; }
+    .kids-score-display { color: #aac4e8; font-size: 0.9rem; font-weight: 700; min-width: 60px; text-align: right; }
+
+    #kidsBody {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+      align-items: center; padding: 16px 16px 32px;
+    }
+
+    /* ── Level selector ── */
+    .kids-level-grid { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .kids-level-card {
+      background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 20px; padding: 18px 20px; cursor: pointer;
+      transition: background 0.2s, transform 0.2s; display: flex; align-items: center; gap: 16px;
+    }
+    .kids-level-card:hover:not(.kids-locked) { background: rgba(255,215,0,0.15); transform: scale(1.02); border-color: rgba(255,215,0,0.4); }
+    .kids-level-card.kids-locked { opacity: 0.4; cursor: not-allowed; }
+    .kids-level-icon { font-size: 2.2rem; flex-shrink: 0; }
+    .kids-level-info { flex: 1; }
+    .kids-level-name { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    .kids-level-desc { font-size: 0.8rem; color: #aac4e8; margin-top: 2px; }
+    .kids-level-stars { font-size: 1.1rem; min-width: 56px; text-align: right; }
+    .kids-level-lock  { font-size: 1.2rem; }
+
+    /* ── Question screen ── */
+    .kids-card-img {
+      width: min(220px, 62vw); border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55); margin-bottom: 14px;
+      display: block;
+    }
+    .kids-question-label {
+      font-size: 1.05rem; font-weight: 700; color: rgba(255,255,255,0.85);
+      text-align: center; margin-bottom: 18px; padding: 0 10px;
+    }
+    .kids-choices {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; width: 100%; max-width: 420px;
+    }
+    .kids-choice-btn {
+      min-height: 64px; font-size: clamp(1.3rem, 5.5vw, 2rem);
+      font-weight: 900; border-radius: 18px;
+      background: rgba(255,255,255,0.1); color: #fff;
+      border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+      transition: transform 0.15s, background 0.15s; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      letter-spacing: 0.06em; padding: 8px;
+    }
+    .kids-choice-btn:hover:not(:disabled) { background: rgba(255,215,0,0.2); transform: scale(1.05); }
+    .kids-choice-btn:disabled { cursor: default; }
+    .kids-choice-btn.kids-correct { background: #2e7d32 !important; border-color: #43a047 !important; }
+    .kids-choice-btn.kids-wrong   { background: #b71c1c !important; border-color: #e53935 !important; }
+
+    /* ── Reveal area ── */
+    .kids-reveal-area {
+      display: flex; gap: 10px; justify-content: center;
+      margin: 16px 0 8px; flex-wrap: wrap;
+    }
+    .char-slot {
+      font-size: clamp(2.2rem, 9vw, 3rem); font-weight: 900; color: #FFD700;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: clamp(52px, 14vw, 70px); height: clamp(52px, 14vw, 70px);
+      background: rgba(255,255,255,0.08); border-radius: 14px;
+      transform: scale(0); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .char-slot.revealed { transform: scale(1); }
+
+    /* ── Summary screen ── */
+    .kids-summary {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 24px 20px; width: 100%; max-width: 400px;
+    }
+    .kids-summary-title { font-size: 1.6rem; font-weight: 900; color: #FFD700; margin-bottom: 8px; }
+    .kids-stars-row { font-size: 3rem; letter-spacing: 0.15em; margin: 12px 0; }
+    .kids-stars-row span { display: inline-block; transform: scale(0); }
+    .kids-stars-row span.star-in { animation: starBurst 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    .kids-score-text { font-size: 1rem; color: #aac4e8; margin-bottom: 24px; }
+    .kids-summary-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .kids-summary-btn {
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; border-radius: 24px; padding: 12px 28px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, transform 0.15s; font-family: inherit;
+    }
+    .kids-summary-btn:hover { background: rgba(255,215,0,0.25); transform: scale(1.04); }
+    .kids-summary-btn.primary { background: var(--yellow); color: #1A1A2E; }
+    .kids-summary-btn.primary:hover { background: var(--yellow-dark); }
+
+    .kids-unlock-banner {
+      background: linear-gradient(135deg, #FFD700, #FF8C00);
+      color: #1A1A2E; font-weight: 800; font-size: 1rem;
+      border-radius: 16px; padding: 12px 20px; margin-bottom: 16px;
+      animation: kidsBounce 0.5s ease forwards;
+    }
+
+    /* ── Progress bar ── */
+    .kids-progress-bar-wrap {
+      width: 100%; max-width: 420px; height: 6px;
+      background: rgba(255,255,255,0.12); border-radius: 3px; margin-bottom: 16px; flex-shrink: 0;
+    }
+    .kids-progress-bar {
+      height: 100%; background: var(--yellow); border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes kidsBounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.4); }
+      60%  { transform: scale(0.9); }
+      80%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    @keyframes kidsShake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-8px); }
+      40%     { transform: translateX(8px); }
+      60%     { transform: translateX(-6px); }
+      80%     { transform: translateX(6px); }
+    }
+    @keyframes charPop {
+      0%   { transform: scale(0) rotate(-10deg); }
+      60%  { transform: scale(1.35) rotate(4deg); }
+      80%  { transform: scale(0.9) rotate(-2deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    @keyframes starBurst {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.5); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -436,6 +592,7 @@
     </div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
+    <button id="kidsBtn" onclick="enterKidsMode()">👶 小朋友</button>
     <button id="quizBtn" onclick="enterQuiz()">測驗</button>
     <button id="langToggle">English</button>
   </div>
@@ -493,6 +650,16 @@
       <span id="quizNextLabel">下一題</span> &#8594;
     </button>
   </div>
+</div>
+
+<!-- ── Kids Mode overlay ── -->
+<div id="kidsOverlay">
+  <div class="kids-top-bar">
+    <button class="quiz-exit-btn" onclick="exitKidsMode()">✕</button>
+    <h2 class="kids-title">👶 小朋友識字</h2>
+    <span class="kids-score-display" id="kidsScoreDisplay">⭐ 0</span>
+  </div>
+  <div id="kidsBody"></div>
 </div>
 
 <div id="detailPanel">
@@ -915,6 +1082,7 @@ function setLang(newLang) {
   if (gridCards.length)
     document.getElementById('setCount').textContent = lbl.cardsLoaded(gridCards.length);
   const isEnNow = lang === 'en';
+  document.getElementById('kidsBtn').textContent       = isEnNow ? '👶 Kids' : '👶 小朋友';
   document.getElementById('prevLabel').textContent     = isEnNow ? 'Prev' : '上一張';
   document.getElementById('nextLabel').textContent     = isEnNow ? 'Next' : '下一張';
   document.getElementById('quizBtn').textContent       = isEnNow ? 'Quiz' : '測驗';
@@ -930,7 +1098,9 @@ document.getElementById('langToggle').addEventListener('click', () =>
   setLang(lang === 'zh' ? 'en' : 'zh'));
 document.getElementById('backdrop').addEventListener('click', closePanel);
 document.addEventListener('keydown', e => {
-  if (document.getElementById('quizOverlay').classList.contains('active')) {
+  if (document.getElementById('kidsOverlay').classList.contains('active')) {
+    if (e.key === 'Escape') exitKidsMode();
+  } else if (document.getElementById('quizOverlay').classList.contains('active')) {
     if (e.key === 'Escape')     exitQuiz();
     if (e.key === 'ArrowLeft')  quizNav(-1);
     if (e.key === 'ArrowRight') quizNav(1);
@@ -1121,6 +1291,289 @@ function updateQuizProgress() {
     quizVocab.length ? `${quizIndex + 1} / ${quizVocab.length}` : '—';
   document.getElementById('quizPrevBtn').disabled = quizIndex <= 0;
   document.getElementById('quizNextBtn').disabled = quizIndex >= quizVocab.length - 1;
+}
+
+// ── Kids Mode ─────────────────────────────────────────────────────
+
+const M4_VOCAB = [{"zh":"獨角蟲","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018827.png","pk":true},{"zh":"偷襲","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018827.png","pk":true},{"zh":"鐵殼蛹","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018828.png","pk":true},{"zh":"垂吊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018828.png","pk":true},{"zh":"堅硬身軀","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018828.png","pk":true},{"zh":"大針蜂","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018829.png","pk":true},{"zh":"針蜂轟鳴","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018829.png","pk":true},{"zh":"尖牙籠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018830.png","pk":true},{"zh":"整隻咬","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018830.png","pk":true},{"zh":"哈力栗","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018831.png","pk":true},{"zh":"敲擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018831.png","pk":true},{"zh":"針刺","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018831.png","pk":true},{"zh":"胖胖哈力","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018832.png","pk":true},{"zh":"綠葉充能","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018832.png","pk":true},{"zh":"藤鞭","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018832.png","pk":true},{"zh":"布里卡隆","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018833.png","pk":true},{"zh":"圍困","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018833.png","pk":true},{"zh":"尖刺盔甲","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018833.png","pk":true},{"zh":"六尾","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018834.png","pk":true},{"zh":"灼熱","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018834.png","pk":true},{"zh":"九尾","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018835.png","pk":true},{"zh":"鬼火","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018835.png","pk":true},{"zh":"鳳王","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018836.png","pk":true},{"zh":"復生火焰","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018836.png","pk":true},{"zh":"紅蓮之翼","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018836.png","pk":true},{"zh":"火狐狸","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018837.png","pk":true},{"zh":"呼朋引伴","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018837.png","pk":true},{"zh":"吐火","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018837.png","pk":true},{"zh":"長尾火狐","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018838.png","pk":true},{"zh":"噴射火焰","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018838.png","pk":true},{"zh":"妖火紅狐","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018839.png","pk":true},{"zh":"能量風暴","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018839.png","pk":true},{"zh":"閃焰魔法","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018839.png","pk":true},{"zh":"小獅獅","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018840.png","pk":true},{"zh":"撞擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018840.png","pk":true},{"zh":"吠","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018841.png","pk":true},{"zh":"鐵炮魚","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018842.png","pk":true},{"zh":"銳利鰭","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018842.png","pk":true},{"zh":"章魚桶","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018843.png","pk":true},{"zh":"墨汁噴射","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018843.png","pk":true},{"zh":"暴走","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018843.png","pk":true},{"zh":"信使鳥","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018844.png","pk":true},{"zh":"幸福禮物","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018844.png","pk":true},{"zh":"羽擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018844.png","pk":true},{"zh":"凱路迪歐","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018845.png","pk":true},{"zh":"穿通","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018845.png","pk":true},{"zh":"能量反射","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018845.png","pk":true},{"zh":"呱呱泡蛙","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018846.png","pk":true},{"zh":"呼喚","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018846.png","pk":true},{"zh":"水槍","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018846.png","pk":true},{"zh":"呱頭蛙","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018847.png","pk":true},{"zh":"招集之術","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018847.png","pk":true},{"zh":"水之刀鋒","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018847.png","pk":true},{"zh":"忍者飛旋","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018848.png","pk":true},{"zh":"冰寶","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018849.png","pk":true},{"zh":"寒意","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018849.png","pk":true},{"zh":"冰息","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018849.png","pk":true},{"zh":"冰岩怪","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018850.png","pk":true},{"zh":"冰山崩裂","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018850.png","pk":true},{"zh":"冰霜踩踏","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018850.png","pk":true},{"zh":"膽小蟲","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018851.png","pk":true},{"zh":"咬","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018851.png","pk":true},{"zh":"推擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018851.png","pk":true},{"zh":"具甲武者","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018852.png","pk":true},{"zh":"要害斬","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018852.png","pk":true},{"zh":"潛力","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018852.png","pk":true},{"zh":"咩利羊","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018853.png","pk":true},{"zh":"電磁波","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018853.png","pk":true},{"zh":"茸茸羊","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018854.png","pk":true},{"zh":"電磁干擾","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018854.png","pk":true},{"zh":"電龍","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018855.png","pk":true},{"zh":"閃光伏特","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018855.png","pk":true},{"zh":"同步脈衝","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018855.png","pk":true},{"zh":"電飛鼠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018856.png","pk":true},{"zh":"小使者","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018856.png","pk":true},{"zh":"天空迴旋","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018856.png","pk":true},{"zh":"基因充能","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018857.png","pk":true},{"zh":"精神強念","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018857.png","pk":true},{"zh":"精神尖槍","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018858.png","pk":true},{"zh":"精神防護","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018859.png","pk":true},{"zh":"精神高速","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018860.png","pk":true},{"zh":"溫柔之光","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018861.png","pk":true},{"zh":"永生綻放","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018861.png","pk":true},{"zh":"妙喵","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018862.png","pk":true},{"zh":"拍檔攻擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018862.png","pk":true},{"zh":"超能妙喵","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018863.png","pk":true},{"zh":"戲法舞步","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018863.png","pk":true},{"zh":"小木靈","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018864.png","pk":true},{"zh":"囈語","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018864.png","pk":true},{"zh":"怨恨進化","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018864.png","pk":true},{"zh":"朽木妖","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018865.png","pk":true},{"zh":"詛咒根","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018865.png","pk":true},{"zh":"超頻傷痛","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018865.png","pk":true},{"zh":"南瓜精","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018866.png","pk":true},{"zh":"踩","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018866.png","pk":true},{"zh":"南瓜怪人","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018867.png","pk":true},{"zh":"恐怖輪舞","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018867.png","pk":true},{"zh":"幽靈之觸","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018867.png","pk":true},{"zh":"大地風暴","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018868.png","pk":true},{"zh":"樹才怪","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018869.png","pk":true},{"zh":"考驗之旅","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018869.png","pk":true},{"zh":"岩石投擲","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018869.png","pk":true},{"zh":"小小象","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018870.png","pk":true},{"zh":"擲泥","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018870.png","pk":true},{"zh":"滾動","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018870.png","pk":true},{"zh":"頓甲","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018871.png","pk":true},{"zh":"接二連三","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018871.png","pk":true},{"zh":"粉碎頭擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018871.png","pk":true},{"zh":"天秤偶","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018872.png","pk":true},{"zh":"連續旋轉","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018872.png","pk":true},{"zh":"念力土偶","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018873.png","pk":true},{"zh":"退化光線","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018873.png","pk":true},{"zh":"超音蝠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018874.png","pk":true},{"zh":"超音波","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018874.png","pk":true},{"zh":"大嘴蝠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018875.png","pk":true},{"zh":"隱密飛行","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018875.png","pk":true},{"zh":"叉字蝠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018876.png","pk":true},{"zh":"毒音波","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018876.png","pk":true},{"zh":"夜間工作","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018876.png","pk":true},{"zh":"千針魚","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018877.png","pk":true},{"zh":"毒液衝擊","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018877.png","pk":true},{"zh":"毒刺","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018877.png","pk":true},{"zh":"臭鼬噗","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018878.png","pk":true},{"zh":"抓","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018878.png","pk":true},{"zh":"坦克臭鼬","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018879.png","pk":true},{"zh":"後踢","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018879.png","pk":true},{"zh":"粉碎迴轉","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018879.png","pk":true},{"zh":"破破袋","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018880.png","pk":true},{"zh":"酸液炸彈","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018880.png","pk":true},{"zh":"灰塵山","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018881.png","pk":true},{"zh":"污泥炸彈","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018881.png","pk":true},{"zh":"垃圾洩氣","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018881.png","pk":true},{"zh":"垃垃藻","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018882.png","pk":true},{"zh":"鉤住","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018882.png","pk":true},{"zh":"鐵啞鈴","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018883.png","pk":true},{"zh":"頭錘","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018883.png","pk":true},{"zh":"光束","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018883.png","pk":true},{"zh":"金屬怪","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018884.png","pk":true},{"zh":"金屬爪","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018884.png","pk":true},{"zh":"防守壓制","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018884.png","pk":true},{"zh":"巨金怪","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018885.png","pk":true},{"zh":"彈回","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018885.png","pk":true},{"zh":"金屬之錘","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018885.png","pk":true},{"zh":"種子鐵球","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018886.png","pk":true},{"zh":"滾動衝撞","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018886.png","pk":true},{"zh":"堅果啞鈴","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018887.png","pk":true},{"zh":"特殊鞭打","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018887.png","pk":true},{"zh":"整人擊落","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018887.png","pk":true},{"zh":"勾帕路翁","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018888.png","pk":true},{"zh":"力量衝撞","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018888.png","pk":true},{"zh":"金屬之路","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018888.png","pk":true},{"zh":"腐蝕液","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018889.png","pk":true},{"zh":"致死猛毒","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018889.png","pk":true},{"zh":"黏黏寶","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018890.png","pk":true},{"zh":"吸取","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018890.png","pk":true},{"zh":"黏美兒","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018891.png","pk":true},{"zh":"重摑","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018891.png","pk":true},{"zh":"黏美龍","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018892.png","pk":true},{"zh":"龍之波動","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018892.png","pk":true},{"zh":"黏滑失足","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018892.png","pk":true},{"zh":"肯泰羅","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018893.png","pk":true},{"zh":"群起瞄準","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018893.png","pk":true},{"zh":"探探鼠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018894.png","pk":true},{"zh":"咬住","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018894.png","pk":true},{"zh":"監視之眼","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018894.png","pk":true},{"zh":"步哨鼠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018895.png","pk":true},{"zh":"臨檢","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018895.png","pk":true},{"zh":"踢倒","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018895.png","pk":true},{"zh":"泡沫栗鼠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018896.png","pk":true},{"zh":"猛撞","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018896.png","pk":true},{"zh":"奇諾栗鼠","cat":"name","img":"https://asia.pokemon-card.com/hk/card-img/hk00018897.png","pk":true},{"zh":"能量巴掌","cat":"move","img":"https://asia.pokemon-card.com/hk/card-img/hk00018897.png","pk":true},{"zh":"順滑大衣","cat":"ability","img":"https://asia.pokemon-card.com/hk/card-img/hk00018897.png","pk":true}];
+
+// Kids Mode state
+let kidsLevel    = 1;
+let kidsSession  = [];
+let kidsQIndex   = 0;
+let kidsScore    = 0;
+let kidsProgress = {};
+let _kidsTimers  = [];
+
+function kidsClearTimers() { _kidsTimers.forEach(clearTimeout); _kidsTimers = []; }
+function kidsTimer(fn, ms) { const t = setTimeout(fn, ms); _kidsTimers.push(t); return t; }
+
+function kidsSaveProgress() {
+  try { localStorage.setItem('kids_progress', JSON.stringify(kidsProgress)); } catch(_) {}
+}
+function kidsLoadProgress() {
+  try { kidsProgress = JSON.parse(localStorage.getItem('kids_progress') || '{}'); } catch(_) { kidsProgress = {}; }
+}
+
+function kidsLevelPool(level) {
+  // Only Pokémon cards, filter by char length per level
+  const pkVocab = M4_VOCAB.filter(v => v.pk);
+  if (level === 1) return pkVocab.filter(v => v.zh.length <= 2);
+  if (level === 2) return pkVocab.filter(v => v.zh.length === 3);
+  return pkVocab.filter(v => v.zh.length === 4);
+}
+
+function kidsShuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function kidsGetDistractors(correct, pool, n) {
+  const others = kidsShuffle(pool.filter(v => v.zh !== correct.zh));
+  return others.slice(0, n);
+}
+
+function enterKidsMode() {
+  kidsLoadProgress();
+  document.getElementById('kidsOverlay').classList.add('active');
+  kidsRenderLevelSelector();
+}
+
+function exitKidsMode() {
+  kidsClearTimers();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  document.getElementById('kidsOverlay').classList.remove('active');
+}
+
+function kidsRenderLevelSelector() {
+  const levels = [
+    { n:1, icon:'🌱', name:'入門', desc:'1–2個字', color:'#2e7d32' },
+    { n:2, icon:'⚡', name:'進階', desc:'3個字',   color:'#e65100' },
+    { n:3, icon:'🔥', name:'高手', desc:'4個字',   color:'#b71c1c' },
+  ];
+  const prog = kidsProgress;
+  // Level 2 needs 2 completed Level-1 sessions; Level 3 needs 2 Level-2 sessions
+  const l2Unlocked = (prog.l1sessions || 0) >= 2;
+  const l3Unlocked = (prog.l2sessions || 0) >= 2;
+  const unlocked = [true, l2Unlocked, l3Unlocked];
+
+  const cardsHtml = levels.map((lv, i) => {
+    const locked = !unlocked[i];
+    const stars  = prog[`l${lv.n}stars`] || 0;
+    const starsHtml = stars > 0 ? '⭐'.repeat(stars) : '—';
+    return `
+      <div class="kids-level-card ${locked ? 'kids-locked' : ''}"
+           onclick="${locked ? '' : `kidsStartSession(${lv.n})`}">
+        <div class="kids-level-icon">${lv.icon}</div>
+        <div class="kids-level-info">
+          <div class="kids-level-name">等級 ${lv.n}：${lv.name}</div>
+          <div class="kids-level-desc">${lv.desc} ${locked ? '🔒 需先完成上一等級兩次' : ''}</div>
+        </div>
+        <div class="kids-level-stars">${starsHtml}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('kidsBody').innerHTML = `
+    <div style="color:#fff;font-size:1rem;font-weight:700;text-align:center;padding:8px 0 16px">
+      選擇等級
+    </div>
+    <div class="kids-level-grid">${cardsHtml}</div>`;
+  document.getElementById('kidsScoreDisplay').textContent = '';
+}
+
+function kidsStartSession(level) {
+  kidsClearTimers();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  kidsLevel   = level;
+  kidsQIndex  = 0;
+  kidsScore   = 0;
+  const pool  = kidsLevelPool(level);
+  kidsSession = kidsShuffle(pool).slice(0, 8);
+  document.getElementById('kidsScoreDisplay').textContent = `⭐ 0`;
+  kidsRenderQuestion();
+}
+
+function kidsRenderQuestion() {
+  if (!kidsSession.length) return;
+  const item = kidsSession[kidsQIndex];
+  const pool = kidsLevelPool(kidsLevel);
+
+  // Build 4 choices: correct + 3 distractors, shuffled
+  const distractors = kidsGetDistractors(item, pool, 3);
+  const choices     = kidsShuffle([item, ...distractors]);
+
+  const qLabel = item.cat === 'name'    ? '這隻寶可夢叫什麼名字？'
+               : item.cat === 'move'    ? '這個招式叫什麼名字？'
+               :                          '這個特技叫什麼名字？';
+
+  // Progress bar
+  const pct = Math.round((kidsQIndex / 8) * 100);
+
+  const choiceBtns = choices.map(c => {
+    const esc = c.zh.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<button class="kids-choice-btn" onclick="kidsAnswer(this,'${esc}')">${c.zh}</button>`;
+  }).join('');
+
+  document.getElementById('kidsBody').innerHTML = `
+    <div class="kids-progress-bar-wrap">
+      <div class="kids-progress-bar" style="width:${pct}%"></div>
+    </div>
+    <img class="kids-card-img" src="${item.img}" alt="${item.zh}"
+         onerror="this.style.opacity='0.3'">
+    <div class="kids-question-label">${qLabel}</div>
+    <div class="kids-choices">${choiceBtns}</div>
+    <div class="kids-reveal-area" id="kidsRevealArea" style="display:none"></div>`;
+
+  document.getElementById('kidsScoreDisplay').textContent = `⭐ ${kidsScore}`;
+}
+
+function kidsAnswer(btnEl, chosen) {
+  kidsClearTimers();
+  const item    = kidsSession[kidsQIndex];
+  const correct = chosen === item.zh;
+
+  // Disable all buttons immediately
+  document.querySelectorAll('.kids-choice-btn').forEach(b => { b.disabled = true; });
+
+  if (correct) {
+    kidsScore++;
+    btnEl.classList.add('kids-correct');
+    btnEl.style.animation = 'kidsBounce 0.45s ease';
+    document.getElementById('kidsScoreDisplay').textContent = `⭐ ${kidsScore}`;
+    kidsPlayTone(523, 0.18);   // happy C5
+    kidsTimer(() => kidsRevealChars(item.zh, () => kidsNextQuestion()), 400);
+  } else {
+    btnEl.classList.add('kids-wrong');
+    btnEl.style.animation = 'kidsShake 0.4s ease';
+    kidsPlayTone(196, 0.3);    // sad low G
+    // Highlight the correct button
+    document.querySelectorAll('.kids-choice-btn').forEach(b => {
+      if (b.textContent === item.zh) b.classList.add('kids-correct');
+    });
+    kidsTimer(() => kidsNextQuestion(), 1800);
+  }
+}
+
+function kidsRevealChars(word, onComplete) {
+  const area = document.getElementById('kidsRevealArea');
+  if (!area) { onComplete && onComplete(); return; }
+  area.style.display = 'flex';
+  area.innerHTML = [...word].map(() => `<span class="char-slot"></span>`).join('');
+  const slots = area.querySelectorAll('.char-slot');
+
+  let i = 0;
+  function revealNext() {
+    if (i >= word.length) {
+      // Speak full word after individual chars
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(word);
+        utt.lang = 'zh-HK'; utt.rate = 0.75;
+        if (cantonVoice) utt.voice = cantonVoice;
+        utt.onend = () => { onComplete && onComplete(); };
+        speechSynthesis.speak(utt);
+        // Safety fallback
+        kidsTimer(() => { onComplete && onComplete(); }, 2500);
+      } else {
+        kidsTimer(() => { onComplete && onComplete(); }, 600);
+      }
+      return;
+    }
+    slots[i].textContent = word[i];
+    slots[i].classList.add('revealed');
+    speakChar(word[i]);
+    i++;
+    kidsTimer(revealNext, 520);
+  }
+  revealNext();
+}
+
+function speakChar(char) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(char);
+  utt.lang = 'zh-HK'; utt.rate = 0.7;
+  if (cantonVoice) utt.voice = cantonVoice;
+  speechSynthesis.speak(utt);
+}
+
+function kidsPlayTone(freq, duration) {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+  } catch(_) {}
+}
+
+function kidsNextQuestion() {
+  kidsClearTimers();
+  kidsQIndex++;
+  if (kidsQIndex < kidsSession.length) {
+    kidsRenderQuestion();
+  } else {
+    kidsShowSummary();
+  }
+}
+
+function kidsShowSummary() {
+  const score = kidsScore;
+  const stars = score >= 7 ? 3 : score >= 5 ? 2 : 1;
+  const msg   = stars === 3 ? '太棒了！🎉' : stars === 2 ? '做得好！👍' : '再試一次！💪';
+
+  // Update progress
+  kidsLoadProgress();
+  const lKey   = `l${kidsLevel}`;
+  const sKey   = `l${kidsLevel}sessions`;
+  const stKey  = `l${kidsLevel}stars`;
+  kidsProgress[sKey]  = (kidsProgress[sKey]  || 0) + 1;
+  kidsProgress[stKey] = Math.max(kidsProgress[stKey] || 0, stars);
+  kidsSaveProgress();
+
+  // Check level unlock
+  const justUnlocked =
+    (kidsLevel === 1 && kidsProgress.l1sessions === 2) ||
+    (kidsLevel === 2 && kidsProgress.l2sessions === 2);
+  const unlockMsg = justUnlocked
+    ? `<div class="kids-unlock-banner">🎉 解鎖等級 ${kidsLevel + 1}！</div>` : '';
+
+  document.getElementById('kidsBody').innerHTML = `
+    <div class="kids-summary">
+      ${unlockMsg}
+      <div class="kids-summary-title">${msg}</div>
+      <div class="kids-stars-row" id="kidsStarsRow">
+        ${'⭐'.repeat(stars).split('').map(s => `<span>${s}</span>`).join('')}
+        ${'☆'.repeat(3 - stars).split('').map(s => `<span style="opacity:.25">${s}</span>`).join('')}
+      </div>
+      <div class="kids-score-text">你答對了 ${score} / ${kidsSession.length} 題！</div>
+      <div class="kids-summary-btns">
+        <button class="kids-summary-btn" onclick="kidsStartSession(${kidsLevel})">再玩一次</button>
+        <button class="kids-summary-btn primary" onclick="kidsRenderLevelSelector()">選關卡</button>
+      </div>
+    </div>`;
+
+  document.getElementById('kidsScoreDisplay').textContent = '';
+
+  // Animate stars in with stagger
+  kidsTimer(() => {
+    document.querySelectorAll('#kidsStarsRow span').forEach((el, i) => {
+      kidsTimer(() => el.classList.add('star-in'), i * 220);
+    });
+  }, 150);
+
+  // Play celebratory tones
+  if (stars >= 2) {
+    [523, 659, 784].forEach((f, i) => kidsTimer(() => kidsPlayTone(f, 0.2), i * 180));
+  }
 }
 
 // ── Boot ───────────────────────────────────────────────────────────
